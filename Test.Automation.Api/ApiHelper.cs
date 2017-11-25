@@ -242,9 +242,9 @@ namespace Test.Automation.Api
             message.AppendLine(ex.StackTrace);
             if (ex.InnerException != null)
             {
-                message.AppendLine("\tINNER EXCEPTION:");
-                message.AppendLine($"\r{ex.InnerException.Message}");
-                message.AppendLine($"\t{ex.InnerException.StackTrace}");
+                message.AppendLine("INNER EXCEPTION:");
+                message.AppendLine($"{ex.InnerException.Message}");
+                message.AppendLine($"{ex.InnerException.StackTrace}");
             }
             Console.WriteLine(message.ToString());
         }

@@ -33,7 +33,7 @@ namespace Test.Automation.Api
         /// Creates an instance of the ApiClientBase class using the URI and impersonated Network Credential passed in.
         /// Supports NTLM, Kerberos, and Negotiate authentication.
         /// </summary>
-        /// <param name="baseUri">The base URI of the API.</param>
+        /// <param name="uri">The base URI of the API.</param>
         /// <param name="credential">NetworkCredential used for impersonation.</param>
         public ApiClientBase(string uri, NetworkCredential credential)
         {
@@ -49,7 +49,7 @@ namespace Test.Automation.Api
         /// Creates an instance of the ApiClientBase class using the URI and the Credential Cache passed in.
         /// Supports Basic, Digest, NTLM, Kerberos, and Negotiate authentication.
         /// </summary>
-        /// <param name="baseUriString">The base URI of the API.</param>
+        /// <param name="uri">The base URI of the API.</param>
         /// <param name="credentialCache">CredentialCache used for authentication.</param>
         public ApiClientBase(string uri, CredentialCache credentialCache)
         {
