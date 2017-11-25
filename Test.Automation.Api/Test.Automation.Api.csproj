@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>jefsmo</Authors>
+    <PackageReleaseNotes>Initial Release (2017-06-28)</PackageReleaseNotes>
+    <Description>This package contains a base class with a method for executing JSON REST API calls.</Description>
+    <RepositoryUrl>https://github.com/jefsmo/test-automation-api</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>c# csharp REST API JSON</PackageTags>
+    <PackageProjectUrl></PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Company>Test.Automation.Api</Company>
+    <Copyright>© 2017 jefsmo</Copyright>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netstandard2.0\Test.Automation.Api.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+
+  <Target Name="CopyPackage" AfterTargets="Pack">
+    <Copy SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="C:\Packages\" />
+  </Target>
+
+</Project>
