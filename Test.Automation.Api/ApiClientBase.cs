@@ -21,7 +21,7 @@ namespace Test.Automation.Api
         /// <param name="uri">The base URI of the API.</param>
         public ApiClientBase(string uri)
         {
-            if (!ApiHelper.TryGetUri(uri, out Uri baseUri))
+            if (!ApiHelper.TryGetUri(uri, out var baseUri))
             {
                 throw new ArgumentException($"Invalid base URI string: {uri}");
             }
@@ -37,7 +37,7 @@ namespace Test.Automation.Api
         /// <param name="credential">NetworkCredential used for impersonation.</param>
         public ApiClientBase(string uri, NetworkCredential credential)
         {
-            if (!ApiHelper.TryGetUri(uri, out Uri baseUri))
+            if (!ApiHelper.TryGetUri(uri, out var baseUri))
             {
                 throw new ArgumentException($"Invalid base URI string: {uri}");
             }
@@ -53,7 +53,7 @@ namespace Test.Automation.Api
         /// <param name="credentialCache">CredentialCache used for authentication.</param>
         public ApiClientBase(string uri, CredentialCache credentialCache)
         {
-            if (!ApiHelper.TryGetUri(uri, out Uri baseUri))
+            if (!ApiHelper.TryGetUri(uri, out var baseUri))
             {
                 throw new ArgumentException($"Invalid base URI string: {uri}");
             }
@@ -69,10 +69,9 @@ namespace Test.Automation.Api
         /// <param name="request">The request message sent to the API.</param>
         /// <param name="converters">An (optional) custom JSON converter (if required to de-serialize your POCO.)</param>
         /// <returns>JSON deserialized as the generic type.</returns>
-        protected async Task<T> ExecuteAsync<T>(HttpRequestMessage request, params JsonConverter[] converters) where T : new()
+        public async Task<T> ExecuteAsync<T>(HttpRequestMessage request, params JsonConverter[] converters) where T : new()
         {
             var responseMessage = default(HttpResponseMessage);
-            string rawJson = null;
             string response = null;
 
             // Call asynchronous network methods in a try/catch block to handle exceptions
@@ -82,7 +81,7 @@ namespace Test.Automation.Api
                 responseMessage = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
                 // Serialize the HTTP content.
-                rawJson = await responseMessage.Content.ReadAsStringAsync();
+                var rawJson = await responseMessage.Content.ReadAsStringAsync();
 
                 // Save the entire response in case there are exceptions.
                 response = ApiHelper.SerializeResponseData(responseMessage, rawJson);
@@ -93,25 +92,15 @@ namespace Test.Automation.Api
                 // Write response to output window in a debug sesson.
                 if (Debugger.IsAttached)
                 {
-                    Console.WriteLine(response);
+                    ApiHelper.PrintResponse(response);
                 }
+
+                // Convert the raw JSON to the generic type.
+                return JsonConvert.DeserializeObject<T>(rawJson, converters);
             }
-            catch (TaskCanceledException tcEx)
+            catch (Exception)
             {
                 ApiHelper.PrintResponse(response);
-                ApiHelper.PrintException(tcEx);
-                throw;
-            }
-            catch (HttpRequestException hrEx)
-            {
-                ApiHelper.PrintResponse(response);
-                ApiHelper.PrintException(hrEx);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                ApiHelper.PrintResponse(response);
-                ApiHelper.PrintException(ex);
                 throw;
             }
             finally
@@ -119,8 +108,6 @@ namespace Test.Automation.Api
                 request?.Dispose();
                 responseMessage?.Dispose();
             }
-            // Convert the raw JSON to the generic type.
-            return JsonConvert.DeserializeObject<T>(rawJson, converters);
         }
     }
 }
