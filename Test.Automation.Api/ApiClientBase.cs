@@ -98,10 +98,9 @@ namespace Test.Automation.Api
                 // Convert the raw JSON to the generic type.
                 return JsonConvert.DeserializeObject<T>(rawJson, converters);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ApiHelper.PrintResponse(response);
-                throw;
+                throw new ApplicationException(response, ex);
             }
             finally
             {
