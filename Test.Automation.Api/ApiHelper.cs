@@ -105,8 +105,9 @@ namespace Test.Automation.Api
          *  The server and any intervening proxies must support persistent connections to successfully complete the authentication.
          *********************************************************************/
 
-        /********************************************************************
-         * Basic Authentication using the Request Authorization Header Example:
+        /**********************************************************************
+         * Basic Authentication using the Request Authorization Header
+         * Example:
          *   string username = "myUserName";
          *   string password = "P4$$w0rd";
          *   var encoding = Encoding.GetEncoding("iso-8859-1").GetBytes(username + ":" + password));
@@ -228,34 +229,6 @@ namespace Test.Automation.Api
             var cts = new CancellationTokenSource();
             cts.CancelAfter(TimeSpan.FromSeconds(timeoutInSeconds));
             return cts.Token;
-        }
-
-        /// <summary>
-        /// Prints the exception (and inner exception) message to the console.
-        /// </summary>
-        /// <param name="ex">The exception being logged.</param>
-        public static void PrintException(Exception ex)
-        {
-            var message = new StringBuilder();
-            message.AppendLine("EXCEPTION:");
-            message.AppendLine(ex.Message);
-            message.AppendLine(ex.StackTrace);
-            if (ex.InnerException != null)
-            {
-                message.AppendLine("INNER EXCEPTION:");
-                message.AppendLine($"{ex.InnerException.Message}");
-                message.AppendLine($"{ex.InnerException.StackTrace}");
-            }
-            Console.WriteLine(message.ToString());
-        }
-
-        /// <summary>
-        /// Prints the HTTP response to the console.
-        /// </summary>
-        /// <param name="response">The HTTP response.</param>
-        public static void PrintResponse(string response)
-        {
-            Console.WriteLine($"RESPONSE AS TEXT:\r\n{response ?? "- No response found -"}");
         }
     }
 }
