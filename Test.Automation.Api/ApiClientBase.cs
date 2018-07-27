@@ -84,7 +84,7 @@ namespace Test.Automation.Api
                         var byteArr = await responseMessage.Content.ReadAsByteArrayAsync();
                         if (byteArr.Length > 0)
                         {
-                            var path = $"{TestContext.CurrentContext.WorkDirectory}\\{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{responseMessage.StatusCode}_{DateTime.Now.ToString("hhmmssfff")}.html";
+                            var path = $"{TestContext.CurrentContext.WorkDirectory}\\{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{responseMessage.StatusCode}.html";
                             File.WriteAllBytes(path, byteArr);
                             TestContext.AddTestAttachment(path);
                         }
@@ -139,7 +139,7 @@ namespace Test.Automation.Api
                         var byteArr = await responseMessage.Content.ReadAsByteArrayAsync();
                         if (byteArr.Length > 0)
                         {
-                            var path = $"{TestContext.CurrentContext.WorkDirectory}\\{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{responseMessage.StatusCode}_{DateTime.Now.ToString("hhmmssfff")}.html";
+                            var path = $"{TestContext.CurrentContext.WorkDirectory}\\{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{responseMessage.StatusCode}.html";
                             File.WriteAllBytes(path, byteArr);
                             TestContext.AddTestAttachment(path);
                         }
