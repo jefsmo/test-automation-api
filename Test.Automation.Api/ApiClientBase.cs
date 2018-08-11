@@ -79,15 +79,13 @@ namespace Test.Automation.Api
                 // Send an HTTP request.
                 using (var responseMessage = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                 {
+                    // Warn if not success status code and output the error message.
+                    await WarnIfNotSuccess(request, responseMessage);
+
+                    // Attach the response content as HTML file to the test output when debugging.
                     if (Debugger.IsAttached)
                     {
-                        var byteArr = await responseMessage.Content.ReadAsByteArrayAsync();
-                        if (byteArr.Length > 0)
-                        {
-                            var path = $"{TestContext.CurrentContext.WorkDirectory}\\{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{responseMessage.StatusCode}.html";
-                            File.WriteAllBytes(path, byteArr);
-                            TestContext.AddTestAttachment(path);
-                        }
+                        await AttachContentToTestOutput(request, responseMessage);
                     }
 
                     // Ensure the response Status Code is Success (2xx).
@@ -112,8 +110,9 @@ namespace Test.Automation.Api
                         Console.WriteLine($"INNER INNER EX: {reqEx.InnerException.InnerException.Message}");
                     }
                 }
+                Console.WriteLine($"STACKTRACE: {reqEx.StackTrace}");
 
-                throw;
+                return default(T);
             }
             finally
             {
@@ -134,15 +133,13 @@ namespace Test.Automation.Api
             {
                 using (var responseMessage = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                 {
+                    // Warn if not success status code and output the error message.
+                    await WarnIfNotSuccess(request, responseMessage);
+
+                    // Attach the response content as HTML file to the test output when debugging.
                     if (Debugger.IsAttached)
                     {
-                        var byteArr = await responseMessage.Content.ReadAsByteArrayAsync();
-                        if (byteArr.Length > 0)
-                        {
-                            var path = $"{TestContext.CurrentContext.WorkDirectory}\\{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{responseMessage.StatusCode}.html";
-                            File.WriteAllBytes(path, byteArr);
-                            TestContext.AddTestAttachment(path);
-                        }
+                        await AttachContentToTestOutput(request, responseMessage);
                     }
 
                     return responseMessage;
@@ -154,11 +151,38 @@ namespace Test.Automation.Api
             }
         }
 
-        private static string RemoveInvalidFileNameChars(string name, string safeCharacter = "_")
+        #region PRIVATE METHODS
+
+        private static async Task WarnIfNotSuccess(HttpRequestMessage request, HttpResponseMessage responseMessage)
         {
-            var shortName = name.Remove(0, 1);
-            return string.Join(safeCharacter, shortName.Split(Path.GetInvalidFileNameChars()));
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"API: {request.RequestUri.OriginalString}");
+                Console.WriteLine($"RESPONSE STATUS: {responseMessage.ReasonPhrase} : {await responseMessage.Content.ReadAsStringAsync()}");
+            }
         }
+
+        private static async Task AttachContentToTestOutput(HttpRequestMessage request, HttpResponseMessage responseMessage)
+        {
+            // Save content to a file instead of test output window for debugging.
+            var byteArr = await responseMessage.Content.ReadAsByteArrayAsync();
+            if (byteArr.Length > 0)
+            {
+                var path = $"{TestContext.CurrentContext.WorkDirectory}\\{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{responseMessage.StatusCode}.html";
+                File.WriteAllBytes(path, byteArr);
+                TestContext.AddTestAttachment(path);
+            }
+        }
+
+        private static string RemoveInvalidFileNameChars(string apiPath)
+        {
+            // Remove initial slash char from the API path so the filename starts with a letter.
+            // Replace all invalid filename chars (i.e. '/') with an underscore.
+            // Ex: /api/foo/bar ==> api_foo_bar
+            return string.Join("_", apiPath.Remove(0, 1).Split(Path.GetInvalidFileNameChars()));
+        }
+        
+        #endregion
     }
 }
 

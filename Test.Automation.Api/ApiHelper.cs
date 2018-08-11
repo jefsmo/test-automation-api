@@ -16,62 +16,16 @@ namespace Test.Automation.Api
     {
         /**********************************************************************
          *  The default MaxResponseContentBufferSize value is 2 GB. 
-         *  If app intends to download large amounts of data (50 megabytes or more), the app should steam those downloads and not use the default buffering.
+         *  If app intends to download large amounts of data (50 megabytes or more),
+         *  the app should steam those downloads and not use the default buffering.
         **********************************************************************/
         const long MAX_BUFFER_SIZE = 50 * 1024 * 1024L; // 50MB.
 
         /**********************************************************************
          *  The default Timeout value is 100,000 ms (100 seconds).
-         *  To set an infinite timeout set the property to InfiniteTimeSpan.
+         *  To set an infinite timeout use Timeout.InfiniteTimeSpan property.
         **********************************************************************/
         const double DEFAULT_TIMEOUT = 100D;    // 100 seconds.
-
-        /// <summary>
-        /// Serializes the HttpResponseMessage data.
-        /// </summary>
-        /// <param name="response">the HttpResponseMessage to serialize</param>
-        /// <param name="serializedResponseContent">the serialized response content</param>
-        /// <returns>all response data is serialized</returns>
-        public static string SerializeResponseData(HttpResponseMessage response, string serializedResponseContent)
-        {
-            var result = new StringBuilder();
-            result.AppendLine(serializedResponseContent);
-            result.AppendLine(SerializeHeaders(response));
-            return result.ToString();
-        }
-
-        /// <summary>
-        /// Serializes the response status code and header collections.
-        /// </summary>
-        /// <param name="response">the HttpResponseMessage to serialize</param>
-        /// <returns>serialized status code and header collection data</returns>
-        private static string SerializeHeaders(HttpResponseMessage response)
-        {
-            var output = new StringBuilder();
-            if (response != null)
-            {
-                // We cast the StatusCode to an int so we display the numeric value (e.g., "200") rather than the 
-                // name of the enum (e.g., "OK") which would often be redundant with the ReasonPhrase. 
-                output.AppendLine(((int)response.StatusCode) + " " + response.ReasonPhrase + "\r\n");
-                SerializeHeaderCollection(response.Headers, output);
-                SerializeHeaderCollection(response.Content.Headers, output);
-                output.Append("\r\n");
-            }
-            return output.ToString();
-        }
-
-        /// <summary>
-        /// Serializes a header collection.
-        /// </summary>
-        /// <param name="headers">a header collection</param>
-        /// <param name="output">the serialized header collection</param>
-        private static void SerializeHeaderCollection(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, StringBuilder output)
-        {
-            foreach (var header in headers)
-            {
-                output.Append(header.Key + ": " + header.Value.Aggregate((x, next) => x + "; " + next) + "\r\n");
-            }
-        }
 
         /// <summary>
         /// Initializes a new instance of the HttpClient class using a specific handler.
@@ -229,6 +183,38 @@ namespace Test.Automation.Api
             var cts = new CancellationTokenSource();
             cts.CancelAfter(TimeSpan.FromSeconds(timeoutInSeconds));
             return cts.Token;
+        }
+
+        /// <summary>
+        /// Serializes the response status code and response headers.
+        /// </summary>
+        /// <param name="response">the HttpResponseMessage to serialize</param>
+        /// <returns>serialized status code and header collection data</returns>
+        private static string SerializeResponseHeaders(HttpResponseMessage response)
+        {
+            var output = new StringBuilder();
+            if (response != null)
+            {
+                // We cast the StatusCode to an int so we display the numeric value (e.g., "200") rather than the 
+                // name of the enum (e.g., "OK") which would often be redundant with the ReasonPhrase. 
+                output.AppendLine($"RESPONSE STATUS: {response.ReasonPhrase} ({((int)response.StatusCode)})");
+                SerializeHeaderCollection(response.Headers, output);
+                SerializeHeaderCollection(response.Content.Headers, output);
+            }
+            return output.ToString();
+        }
+
+        /// <summary>
+        /// Serializes a header collection.
+        /// </summary>
+        /// <param name="headers">a header collection</param>
+        /// <param name="output">the serialized header collection</param>
+        private static void SerializeHeaderCollection(IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers, StringBuilder output)
+        {
+            foreach (var header in headers)
+            {
+                output.AppendLine($"{header.Key}: {header.Value.Aggregate((x, next) => x + "; " + next)}");
+            }
         }
     }
 }
