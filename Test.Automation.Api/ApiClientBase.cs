@@ -79,12 +79,14 @@ namespace Test.Automation.Api
                 // Send an HTTP request.
                 using (var responseMessage = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                 {
-                    // Warn if not success status code and output the error message.
-                    await WarnIfNotSuccess(request, responseMessage);
-
-                    // Attach the response content as HTML file to the test output when debugging.
-                    if (Debugger.IsAttached)
+                    if (!responseMessage.IsSuccessStatusCode)
                     {
+                        // Warn if not success status code and output the error message.
+                        await WarnIfNotSuccess(request, responseMessage);
+                    }
+                    else if (Debugger.IsAttached)
+                    {
+                        // Attach the response content as HTML file to the test output when debugging.
                         await AttachContentToTestOutput(request, responseMessage);
                     }
 
@@ -133,12 +135,14 @@ namespace Test.Automation.Api
             {
                 using (var responseMessage = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                 {
-                    // Warn if not success status code and output the error message.
-                    await WarnIfNotSuccess(request, responseMessage);
-
-                    // Attach the response content as HTML file to the test output when debugging.
-                    if (Debugger.IsAttached)
+                    if (!responseMessage.IsSuccessStatusCode)
                     {
+                        // Warn if not success status code and output the error message.
+                        await WarnIfNotSuccess(request, responseMessage);
+                    }
+                    else if (Debugger.IsAttached)
+                    {
+                        // Attach the response content as HTML file to the test output when debugging.
                         await AttachContentToTestOutput(request, responseMessage);
                     }
 
@@ -155,11 +159,8 @@ namespace Test.Automation.Api
 
         private static async Task WarnIfNotSuccess(HttpRequestMessage request, HttpResponseMessage responseMessage)
         {
-            if (!responseMessage.IsSuccessStatusCode)
-            {
-                Console.WriteLine($"API: {request.RequestUri.OriginalString}");
-                Console.WriteLine($"RESPONSE STATUS: {responseMessage.ReasonPhrase} : {await responseMessage.Content.ReadAsStringAsync()}");
-            }
+            Console.WriteLine($"API: {request.RequestUri.OriginalString}");
+            Console.WriteLine($"RESPONSE STATUS: {responseMessage.ReasonPhrase} : {await responseMessage.Content.ReadAsStringAsync()}");
         }
 
         private static async Task AttachContentToTestOutput(HttpRequestMessage request, HttpResponseMessage responseMessage)
@@ -168,6 +169,7 @@ namespace Test.Automation.Api
             var byteArr = await responseMessage.Content.ReadAsByteArrayAsync();
             if (byteArr.Length > 0)
             {
+                // file name: bin\Debug\api_foo_bar_OK.html
                 var path = $"{TestContext.CurrentContext.WorkDirectory}\\{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{responseMessage.StatusCode}.html";
                 File.WriteAllBytes(path, byteArr);
                 TestContext.AddTestAttachment(path);
