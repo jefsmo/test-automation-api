@@ -76,7 +76,6 @@ namespace Test.Automation.Api
         /// <code>            
         /// var credentialCache = new CredentialCache
         /// {
-        ///     { new Uri("http://myBaseUri"), "Basic", new NetworkCredential(userName, password) },
         ///     { new Uri("http://myBaseUri"), "Digest", new NetworkCredential(userName, password, domain) },
         ///     { new Uri("http://myBaseUri"), "NTLM", new NetworkCredential(userName, password) },
         ///     { new Uri("http://myBaseUri"), "Kerberos", new NetworkCredential(userName, password) },

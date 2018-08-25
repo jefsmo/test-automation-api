@@ -79,22 +79,24 @@ namespace Test.Automation.Api
                 // Send an HTTP request.
                 using (var responseMessage = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
                 {
+                    // Serialize the HTTP content.
+                    var rawJson = await responseMessage.Content.ReadAsStringAsync();
+
                     if (!responseMessage.IsSuccessStatusCode)
                     {
                         // Warn if not success status code and output the error message.
-                        await WarnIfNotSuccess(request, responseMessage);
+                        WarnIfNotSuccess(request, responseMessage.ReasonPhrase, rawJson);
                     }
                     else if (Debugger.IsAttached)
                     {
+                        var byteArr = await responseMessage.Content.ReadAsByteArrayAsync();
+
                         // Attach the response content as HTML file to the test output when debugging.
-                        await AttachContentToTestOutput(request, responseMessage);
+                        AttachContentToTestOutput(request, responseMessage.StatusCode.ToString(), byteArr);
                     }
 
                     // Ensure the response Status Code is Success (2xx).
                     responseMessage.EnsureSuccessStatusCode();
-
-                    // Serialize the HTTP content.
-                    var rawJson = await responseMessage.Content.ReadAsStringAsync();
 
                     // Convert the raw JSON to the generic type.
                     return JsonConvert.DeserializeObject<T>(rawJson, converters);
@@ -137,13 +139,18 @@ namespace Test.Automation.Api
                 {
                     if (!responseMessage.IsSuccessStatusCode)
                     {
+                        // Serialize the HTTP content.
+                        var rawJson = await responseMessage.Content.ReadAsStringAsync();
+
                         // Warn if not success status code and output the error message.
-                        await WarnIfNotSuccess(request, responseMessage);
+                        WarnIfNotSuccess(request, responseMessage.ReasonPhrase, rawJson);
                     }
                     else if (Debugger.IsAttached)
                     {
+                        var byteArr = await responseMessage.Content.ReadAsByteArrayAsync();
+
                         // Attach the response content as HTML file to the test output when debugging.
-                        await AttachContentToTestOutput(request, responseMessage);
+                        AttachContentToTestOutput(request, responseMessage.StatusCode.ToString(), byteArr);
                     }
 
                     return responseMessage;
@@ -157,20 +164,19 @@ namespace Test.Automation.Api
 
         #region PRIVATE METHODS
 
-        private static async Task WarnIfNotSuccess(HttpRequestMessage request, HttpResponseMessage responseMessage)
+        private static void WarnIfNotSuccess(HttpRequestMessage request, string reasonPhrase, string rawJaon)
         {
-            Console.WriteLine($"API: {request.RequestUri.OriginalString}");
-            Console.WriteLine($"RESPONSE STATUS: {responseMessage.ReasonPhrase} : {await responseMessage.Content.ReadAsStringAsync()}");
+            Console.WriteLine($"API: ({request.Method.Method}) {request.RequestUri.OriginalString}");
+            Console.WriteLine($"RESPONSE STATUS: {reasonPhrase} : {rawJaon}");
         }
 
-        private static async Task AttachContentToTestOutput(HttpRequestMessage request, HttpResponseMessage responseMessage)
+        private static void AttachContentToTestOutput(HttpRequestMessage request, string statusCode, byte[]  byteArr)
         {
             // Save content to a file instead of test output window for debugging.
-            var byteArr = await responseMessage.Content.ReadAsByteArrayAsync();
             if (byteArr.Length > 0)
             {
                 // file name: bin\Debug\api_foo_bar_OK.html
-                var path = $"{TestContext.CurrentContext.WorkDirectory}\\{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{responseMessage.StatusCode}.html";
+                var path = Path.Combine(TestContext.CurrentContext.WorkDirectory, "DEBUG", $"{request.Method.Method}_{RemoveInvalidFileNameChars(request.RequestUri.AbsolutePath)}_{statusCode}.html");
                 File.WriteAllBytes(path, byteArr);
                 TestContext.AddTestAttachment(path);
             }
